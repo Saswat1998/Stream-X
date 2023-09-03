@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as go from '@aws-cdk/aws-lambda-go-alpha';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { CfnOutput, Duration, Tags } from 'aws-cdk-lib';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
@@ -25,7 +26,7 @@ export class DeployStack extends cdk.Stack {
     
     const s3BucketAccess = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      resources: ["arn:aws:s3:::x-stream-videos"],
+      resources: ["arn:aws:s3:::x-stream-videos/*"],
       actions: ["s3:*"]
     });
 
@@ -45,9 +46,22 @@ export class DeployStack extends cdk.Stack {
     const lambdaCfn = uploadServiceLambda.node.defaultChild as lambda.CfnFunction;
     lambdaCfn.overrideLogicalId('UploadServiceLambda');
 
+    const api = new apigateway.RestApi(this, 'UploadServiceApi', {
+      restApiName: 'Upload Video Serice API',
+      description: 'API for uploading videos to S3 bucket',
+      endpointTypes: [apigateway.EndpointType.REGIONAL],
+    });
+
+    const lambdaIntegration = new apigateway.LambdaIntegration(uploadServiceLambda);
+    api.root.addMethod('POST', lambdaIntegration);
+
     new CfnOutput(this, 'UploadServiceLambdaArn', {
       value: uploadServiceLambda.functionArn,
       exportName: 'UploadServiceLambdaArn',
+    });
+    new CfnOutput(this, 'UploadServiceApiUrl', {
+      value: api.url,
+      exportName: 'UploadServiceApiUrl',
     });
   }
 }

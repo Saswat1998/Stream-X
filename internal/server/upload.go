@@ -1,10 +1,9 @@
 package server
 
 import (
-	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,8 +11,11 @@ import (
 )
 
 type VideoRequestBody struct {
-	VideoData string `json:"videoData"`
 	VideoName string `json:"videoName"`
+}
+
+type PreSignedURLResponse struct {
+	PreSignedURL string `json:"preSignedURL"`
 }
 
 func (s *Server) UploadVideo(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -26,28 +28,34 @@ func (s *Server) UploadVideo(ctx context.Context, request events.APIGatewayProxy
 		}, err
 	}
 
-	videoData := body.VideoData
-	videoBytes, err := base64.StdEncoding.DecodeString(videoData)
-	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: 400,
-			Body:       "Error decoding base64 video data",
-		}, err
-	}
-	_, err = s.s3.PutObject(&s3.PutObjectInput{
+	req, _ := s.s3.PutObjectRequest(&s3.PutObjectInput{
 		Bucket: aws.String("x-stream-videos"),
 		Key:    aws.String("uploads/" + body.VideoName),
-		Body:   bytes.NewReader(videoBytes),
 	})
+	urlStr, err := req.Presign(15 * time.Minute)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			StatusCode: 500,
-			Body:       "Error uploading the video",
+			Body:       "Failed to get the Pre-signed URL",
+		}, err
+	}
+	response := PreSignedURLResponse{
+		PreSignedURL: urlStr,
+	}
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			StatusCode: 500,
+			Body:       "Failed to Marshal reaponse",
 		}, err
 	}
 	return events.APIGatewayProxyResponse{
 		StatusCode: 200,
-		Body:       "Video uploaded successfully!",
+		Headers: map[string]string{
+			"Access-Control-Allow-Origin":  "http://localhost:3000",
+			"Access-Control-Allow-Methods": "POST, GET, PUT, OPTIONS",
+		},
+		Body: string(responseJSON),
 	}, nil
 
 }
