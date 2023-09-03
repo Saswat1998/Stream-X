@@ -83,9 +83,3 @@ Invoke the Upload Service API through the API Gateway to upload a video.
 #### Video Streaming
 Access the application via a web browser to stream videos.
 
-
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for more information.
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for more details.
