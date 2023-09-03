@@ -13,8 +13,6 @@ This is a video streaming application, similar to YouTube, built using a microse
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
@@ -59,7 +57,7 @@ The application adopts a microservices architecture and uses the following servi
 
 1. **Clone the repo**:
     ```bash
-    git clone https://github.com/yourusername/videostreaming-service.git
+    git clone https://github.com/Saswat1998/Stream-X.git
     ```
 
 2. **Navigate to project directory**:
@@ -85,7 +83,6 @@ Invoke the Upload Service API through the API Gateway to upload a video.
 #### Video Streaming
 Access the application via a web browser to stream videos.
 
-## Contributing
 
 Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for more information.
 
